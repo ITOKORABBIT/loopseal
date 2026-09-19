@@ -1,0 +1,3 @@
+# Repo-local only; DevFlow never touches the user's global Git config.
+* text=auto eol=lf
+*.cmd text eol=crlf
