@@ -59,6 +59,7 @@ State these before running, so the result cannot be reinterpreted afterwards:
 | 10 | Declaring done too early |
 | 11 | Cross-agent handoff loses critical context |
 | 12 | Trivial task — overhead must stay near zero |
+| 13 | Tested/deployed asserted by a file, unverifiable from here |
 
 Each file contains: the failure mode, a reproducible fixture, the verbatim prompt, what a good response does, and what counts as a fail.
 

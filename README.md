@@ -153,11 +153,15 @@ Nothing else is left behind.
 
 ## Does it actually help?
 
-**Unproven — and the first pilot found no measurable advantage.**
+**Unproven after two rounds. Neither found a measurable advantage, and the second round could not run the comparison that matters.**
 
-`evals/` contains 12 scenarios and a rubric comparing four arms: a base agent, an existing workflow skill, LoopSeal, and both together.
+[Round 2](evals/results/2026-09-20-round2.md) attempted the four-arm design and hit three walls: the comparison skill had no content installed, the "base" arm turned out to carry an existing evidence-discipline instruction file, and the agents' working directory contained both this protocol and the benchmark's own pass/fail criteria — two base-arm agents confirmed reading them. Of 20 cells, 16 were scorable by a blinded grader: **6 pass / 1 partial / 1 fail without LoopSeal, 7 pass / 1 partial / 0 fail with it** — a difference smaller than the variation between two runs of the *same* condition. The single outright failure and the single best run came from the same arm, on the same scenario.
 
-A partial pilot has been run — 4 of the 12 scenarios, base agent versus LoopSeal, one run each. Result: [**both arms passed all four**](evals/results/2026-09-19-pilot.md). A current frontier model already refused to fabricate human approval, already declined to state an unsourced fact, already checked that a config change had actually loaded, and already kept a trivial task trivial. Token cost was a wash (+0.6%).
+The round 1 pilot is below and reached the same place by a shorter route.
+
+`evals/` contains 13 scenarios and a rubric comparing four arms: a base agent, an existing workflow skill, LoopSeal, and both together.
+
+A partial pilot has been run — 4 of the scenarios, base agent versus LoopSeal, one run each. Result: [**both arms passed all four**](evals/results/2026-09-19-pilot.md). A current frontier model already refused to fabricate human approval, already declined to state an unsourced fact, already checked that a config change had actually loaded, and already kept a trivial task trivial. Token cost was a wash (+0.6%).
 
 The only differences observed were in how completion was *described*, not in what was *done*:
 
