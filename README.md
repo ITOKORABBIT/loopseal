@@ -1,150 +1,193 @@
-# DevFlow
+# LoopSeal
 
-**A general-purpose AI workflow skill for closed-loop execution, verification, evidence, and handoff.**
+**A closure protocol for AI-delegated work.**
 
-讓 AI 養成一套工作方式：**做完要驗、驗完要留證據、失敗要修正再驗、需要真人確認的不能自己宣布完成。**
+> Don't just finish. Seal the loop.
 
-不是專案管理工具，不是狀態機軟體，沒有程式要跑。這個 repo 裡全部都是文字規則——安裝＝把它放進 AI 的 skills 資料夾。
+LoopSeal is a skill that decides **when work is allowed to be called done**. It does not tell an agent how to plan, code, research or write — it governs the boundary at the end of the work, where "finished" is claimed.
+
+Guiding principle:
+
+> **An AI should never be more certain about completion than its evidence allows.**
 
 ---
 
-## 這個 Skill 解決什麼
+## Why the name
 
-AI 助理最常見的六種「假完成」：
+**Loop** — delegated work is rarely a straight line. It runs `Execute → Verify → Fix → Verify again → Deliver`, sometimes several times.
 
-| 症狀 | DevFlow 的對策 |
+**Seal** — a loop may only be closed when every applicable completion criterion is backed by evidence and any required human confirmation has actually happened.
+
+Which means:
+
+```
+a successful command   ≠ sealed
+passing tests          ≠ sealed
+deployed               ≠ sealed
+"looks right to me"    ≠ sealed
+```
+
+The loop closes when the work is genuinely ready to close — not when the agent runs out of steps.
+
+---
+
+## The problem it addresses
+
+Six recurring failures when real work is delegated to an AI:
+
+| Failure | What LoopSeal requires instead |
 |---|---|
-| 做到一半就說完成 | 回報用語必須對齊實際進度，做到哪只能說到哪 |
-| 測試通過就說已上線 | 測試通過 ≠ 已部署 ≠ 真人使用正常，三段分開講 |
-| 寫出檔案卻沒確認能不能打開 | 文件類工作一定要實際開檔確認 |
-| 改完設定沒有實際讀回 | 設定類工作分兩層：值讀得回來、行為真的變了 |
-| 不確定卻用推測補答案 | 不知道就標 `UNKNOWN`，驗不了就標 `UNVERIFIED` |
-| 換聊天室或換 Agent 後進度消失 | 中斷前留十項交接資訊，接手方先讀再動手 |
+| Declaring completion mid-way | Report in the language of the actual state; "changed" is not "verified" |
+| Treating tests as deployment, deployment as working software | Each stage needs its own evidence; reaching one never implies the next |
+| Producing a file nobody opened | Document work is verified by opening the artefact, not by writing it |
+| Changing config without reading it back | Config work has two layers: value read back, behaviour re-tested after reload |
+| Filling gaps with plausible guesses | `UNKNOWN` and `UNVERIFIED` are first-class outputs |
+| Losing the thread across agents and sessions | An open loop hands off with the reason it is still open |
 
-核心紀律只有四句：
-
-1. 執行完成 ≠ 驗證完成
-2. 驗證完成 ≠ 交付成功
-3. 測試通過 ≠ 已部署
-4. 部署成功 ≠ 真人使用正常
-
-加一條紅線：**AI 不得冒充真人驗收。**
+And one boundary: **an AI must never create, imply or assume human approval.**
 
 ---
 
-## 適用範圍
+## What it is not
 
-全領域，不只寫程式：程式開發、網站修改、文件製作、企畫與內容、資料整理、研究分析、系統設定、部署、自動化、系統維護。
+LoopSeal does not replace Superpowers, Spec Kit, BMAD, CI pipelines, or your own `AGENTS.md` / `CLAUDE.md`. Those govern **how work gets done**. LoopSeal governs **when it may be called done**. They compose; it is not a competitor to any of them.
 
-通用層只有一個閉環：
-
-```
-執行 → 驗證 → 留證據 → 判斷是否通過
-  ↑                        │
-  └──── 修正 ←── 未通過 ────┘
-                           │ 通過
-         必要時交付／部署 → 真人驗收 → 結案
-```
-
-不同類型的工作**只在「怎麼算驗過」上不同**，不會被硬塞工程術語。只有 coding 類工作才額外套 `Implemented → Tested → Deployed → Human Verified`。
+If your work is entirely coding, inside one session, with strong CI and you review every diff, most of this is already covered by your pipeline. See [Who this is for](#who-this-is-for).
 
 ---
 
-## 安裝
+## Core model
 
-需求：一個支援 `SKILL.md` 格式的 AI 工具（Claude Code、Codex 等）。不需要 Node、Python 或任何執行環境，不改 PATH，不需要管理員權限。
+Six concepts, defined in `SKILL.md` and expanded in `references/`:
 
-把這個 repo clone 進 skills 資料夾，命名為 `devflow`：
+| Concept | Question it answers |
+|---|---|
+| **Seal Criteria** | What must be true before this can be sealed? |
+| **Claims** | What exactly am I asserting, and how far does it extend? |
+| **Evidence** | Is it fresh, attributable, relevant, and could it have failed? |
+| **Verification** | What counts as checked for *this kind* of work? |
+| **Human Gates** | Does a person have to confirm, and did they actually? |
+| **Open-loop Handoff** | Why is this loop still open, and what does the next person need? |
+
+Proportionality is built in: trivial work stays trivial. If the seal report is longer than the task, the protocol is being misused.
+
+---
+
+## Install
+
+No runtime, no dependencies, no PATH changes, no admin rights. It is a folder of Markdown.
 
 ```bash
 # Claude Code
-git clone https://github.com/ITOKORABBIT/devflow-skill.git ~/.claude/skills/devflow
+git clone https://github.com/ITOKORABBIT/loopseal.git ~/.claude/skills/loopseal
 
-# Codex（官方文件的使用者層 skills 位置是 ~/.agents/skills）
-git clone https://github.com/ITOKORABBIT/devflow-skill.git ~/.agents/skills/devflow
+# Codex (user-level skills live in ~/.agents/skills)
+git clone https://github.com/ITOKORABBIT/loopseal.git ~/.agents/skills/loopseal
 ```
 
-Windows（PowerShell）：
+Windows (PowerShell):
 
 ```powershell
-git clone https://github.com/ITOKORABBIT/devflow-skill.git "$env:USERPROFILE\.claude\skills\devflow"
-git clone https://github.com/ITOKORABBIT/devflow-skill.git "$env:USERPROFILE\.agents\skills\devflow"
+git clone https://github.com/ITOKORABBIT/loopseal.git "$env:USERPROFILE\.claude\skills\loopseal"
+git clone https://github.com/ITOKORABBIT/loopseal.git "$env:USERPROFILE\.agents\skills\loopseal"
 ```
 
-只想給某個專案用的話，Codex 也會讀 repo 內的 `.agents/skills/`，把它 clone 到專案的 `.agents/skills/devflow` 即可。
+For a single project, Codex also reads `.agents/skills/` inside a repository.
 
-不用 git 也可以：下載 ZIP，解壓後把整個資料夾放進 skills 目錄並命名為 `devflow`。
+Restart the tool. To confirm it is loaded, ask: *"Do you have the loopseal skill? What are the four evidence tests?"* (Answer: freshness, provenance, relevance, falsifiability.)
 
-重開 AI 工具後生效。確認方式：問它「你有 devflow skill 嗎？講一下它的四條不等於」。
-
-### 更新
+### Update
 
 ```bash
-cd ~/.claude/skills/devflow && git pull
-cd ~/.agents/skills/devflow && git pull
+cd ~/.claude/skills/loopseal && git pull
 ```
 
-### 讓它變成預設行為（選用）
+### Make it the default (optional)
 
-Skill 通常由 AI 依情境自行判斷是否套用。想讓它**每次都套用**，在你那個工具的全域指示檔（例如 Claude Code 的 `~/.claude/CLAUDE.md`、Codex 的全域 `AGENTS.md`）加一行：
+Skills are normally applied when the agent judges them relevant. To apply it always, add one line to your global instructions file (Claude Code's `~/.claude/CLAUDE.md`, Codex's global `AGENTS.md`):
 
 ```markdown
-所有實際工作預設套用 devflow skill：做完要驗、驗完留證據、失敗修正再驗、真人驗收不得由 AI 代簽。
+Apply the loopseal skill to all delegated work: claims need evidence, unverified is stated, human approval is never assumed.
 ```
 
-這一步是你自己決定要不要做，Skill 本身不會去改你的設定檔。
+LoopSeal does not edit your configuration files. That step is yours.
 
----
-
-## 移除
-
-刪掉那個資料夾就好，不留任何殘留：
+### Remove
 
 ```bash
-rm -rf ~/.claude/skills/devflow
-rm -rf ~/.agents/skills/devflow
+rm -rf ~/.claude/skills/loopseal ~/.agents/skills/loopseal
 ```
 
-如果你有加上面那行全域指示，把那一行刪掉。
+Nothing else is left behind.
 
 ---
 
-## 內容
+## Contents
 
-| 檔案 | 用途 |
+| Path | What it is |
 |---|---|
-| `SKILL.md` | **Skill 本體**。AI 讀的就是這份，定義它的工作行為 |
-| `references/verification.md` | 各類工作怎麼算「驗過」：判準、證據、常見假完成 |
-| `references/evidence.md` | 證據規則：什麼算證據、怎麼記、UNKNOWN 與 UNVERIFIED |
-| `references/human-verification.md` | 真人驗收規則與 AI 的紅線 |
-| `references/handoff.md` | 交接十項規格、接手方義務、多層交接 |
-| `references/work-records.md` | 需要時在專案內留的輕量紀錄 `.ai-workflow/` |
-| `templates/` | 狀態與交接的空白模板 |
-| `examples/` | 實際跑過的案例，含刻意留下的「驗不了」情況 |
+| `SKILL.md` | The protocol itself — this is what the agent reads |
+| `references/seal-criteria.md` | Writing criteria that can actually fail |
+| `references/evidence.md` | The four evidence tests, recording format |
+| `references/verification.md` | What "verified" means per work type; the coding chain |
+| `references/human-gates.md` | required / optional / not applicable, and the red line |
+| `references/uncertainty.md` | `UNKNOWN` vs `UNVERIFIED`, and not interpolating |
+| `references/handoff.md` | Open-loop handoff format and receiver duties |
+| `examples/` | Real cases, including ones where verification failed |
+| `evals/` | Benchmark scenarios and rubric for testing whether this actually helps |
+| `templates/` | Blank state and handoff templates |
 
-`references/` 由 AI 在需要時才讀取，不會一次全部佔用上下文。
-
----
-
-## 案例
-
-- [程式開發：測試全過，安裝測試才抓到兩個 bug](examples/01-coding.md)
-- [研究分析：先有來源才有結論](examples/02-research.md)
-- [系統設定：讀得回值，但行為這一層當下驗不了](examples/03-system-config.md)
-- [文件製作：內容、事實、格式要分三次檢查](examples/04-document.md)
-- [交接：換 Agent 前留下什麼](examples/05-handoff.md)
+`references/` is loaded on demand, not all at once.
 
 ---
 
-## 設計取捨
+## Examples
 
-- **沒有程式**。規則要能被讀懂、被質疑、被改，不需要執行環境。
-- **不強制留檔**。小事不建檔，只有跨 session、有交付物或會中斷的工作才留 `.ai-workflow/`。
-- **不取代既有流程**。它管的是「怎麼算做完」，不管你用什麼工具追蹤任務。
-- **真人驗收靠紀律而非技術**。這是一套工作方式，不是防竄改系統；它擋的是 AI 自己越線，不是惡意偽造。
+- [Tests passed; the install test found two bugs](examples/01-coding.md)
+- [Research where two of three assumptions were wrong](examples/02-research.md)
+- [Config read back correctly; runtime could not be verified](examples/03-system-config.md)
+- [A document that read well and had five dead links](examples/04-document.md)
+- [Handing off a loop that is still open](examples/05-handoff.md)
 
 ---
 
-## 授權
+## Does it actually help?
+
+**Unproven — and the first pilot found no measurable advantage.**
+
+`evals/` contains 12 scenarios and a rubric comparing four arms: a base agent, an existing workflow skill, LoopSeal, and both together.
+
+A partial pilot has been run — 4 of the 12 scenarios, base agent versus LoopSeal, one run each. Result: [**both arms passed all four**](evals/results/2026-09-19-pilot.md). A current frontier model already refused to fabricate human approval, already declined to state an unsourced fact, already checked that a config change had actually loaded, and already kept a trivial task trivial. Token cost was a wash (+0.6%).
+
+The only differences observed were in how completion was *described*, not in what was *done*:
+
+- a tighter claim boundary, with the untested part named explicitly
+- distinguishing "the file says this was tested" from "I verified it was tested"
+
+That is a much smaller claim than "prevents false completion", and the larger claim is not supported.
+
+What is still unknown: the eight scenarios the hypothesis says should differentiate (deployment versus reality, stale evidence, handoff conflicts, cross-agent context loss) were **not run**, nor were the two arms involving an existing workflow skill — so whether LoopSeal adds anything on top of one is entirely unanswered. Weaker models, long sessions and real multi-agent handoffs are untested.
+
+The benchmark is designed so LoopSeal can lose, and this pilot is what that looks like. Full write-up, including the method's limitations: [`evals/results/`](evals/results/).
+
+## Who this is for
+
+The working hypothesis — **not yet proven, and not supported by the pilot above** — is that LoopSeal earns its place when you **delegate real work to an AI**, rather than using an AI to write code you then review line by line:
+
+- multiple agents or sessions handing work to each other
+- work that gets deployed or touches external systems
+- a mix of coding, research, documents and operations
+- you do not inspect every action the agent takes
+
+**Probably not worth installing if:**
+
+- your work is purely coding, single-session, covered by CI, and you read every diff — your pipeline already enforces most of this
+- you are on a current frontier model doing short, self-contained tasks — the pilot suggests it already behaves this way unaided
+
+Install it if you have personally been burned by a confident "done" that was not, and you want the boundary written down rather than left to the model's disposition on the day. That is an honest reason. "It measurably improves agent output" is not yet one.
+
+---
+
+## Licence
 
 MIT

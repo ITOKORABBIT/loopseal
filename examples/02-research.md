@@ -1,51 +1,57 @@
-# 案例二｜研究分析：先有來源才有結論
+# Example 2 — Two of three assumptions were wrong
 
-**工作**：確認兩個 AI 工具各自的 skills 資料夾在這台機器的實際位置，以及兩邊的 skill 格式是否相容。
-**為什麼值得看**：研究類工作最大的風險是「憑印象當事實」。這次如果照印象寫，三個結論有兩個是錯的。
+**Work:** determine where two different AI tools load user-level skills from on this machine, and whether one skill folder can serve both.
+**Why this one:** research fails quietly. Nothing crashes. If the assumptions had been written up as findings, the resulting work would have been installed into a directory nothing reads.
 
 ---
 
-## Gathered（收資料，記來源）
+## Seal criteria
 
-不靠記憶，全部用實際指令查：
+1. Every path claim traced to something observed on the machine or stated in official documentation
+2. The compatibility conclusion tested against actual files, not inferred from tool similarity
 
-| 想知道的事 | 查法（來源） |
+## Gathered — with provenance
+
+Nothing from memory. Each fact tied to how it was obtained:
+
+| Question | How it was answered |
 |---|---|
-| 設定目錄在哪 | 列出候選目錄內容、讀環境變數 |
-| 哪個目錄是實際生效的 | 比對設定檔的最後修改時間 |
-| 兩邊 skill 格式 | 各打開一個現有 skill 的 `SKILL.md` 看前幾行 |
+| Where are the config directories? | Listed the candidate directories; read the environment variables |
+| Which one is actually in use? | Compared modification times of the config files |
+| Are the skill formats compatible? | Opened an existing skill in each tool and compared the headers |
 
-## Sources Checked（核對來源，推翻兩個預設）
+## Sources checked — assumptions falling over
 
-| 原本以為 | 實際查到 | 怎麼發現的 |
+| Assumed | Observed | How it surfaced |
 |---|---|---|
-| 兩個路徑是兩份各自獨立的設定 | 其中一個是另一個的符號連結，**其實是同一份** | `ls -la` 看到 `->` 指向 |
-| 另一個工具只有一個設定目錄 | 有**兩個**，其中一個是舊的（設定檔停在幾個月前，且主指示檔是空的） | 比對兩邊設定檔的修改時間與大小 |
-| 兩邊 skill 格式可能不同，要各寫一份 | **完全相同**（同樣的 YAML frontmatter：`name` + `description`） | 各開一個現有 skill 的前幾行對照 |
+| Two separate config trees | One is a symlink to the other — the same directory | `ls -la` showed the `->` target |
+| One config directory | Two, one of them stale (config months old, main instructions file empty) | Compared file sizes and modification times |
+| Formats probably differ, so maintain two copies | Identical format, same header fields | Opened one existing skill from each tool |
 
-三個預設，錯了兩個。**如果直接照印象寫，會做出「要維護兩份不同格式的 skill」這種錯誤結論，並且可能把檔案裝進根本沒在用的舊目錄。**
+Two of three assumptions were wrong, and both wrong ones were comfortable: they sounded like how such tools usually work.
 
-## Analysis Completed
+## The one that only documentation could settle
 
-因為格式相同，同一份 skill 可以雙裝，不需要維護兩份。
-因為舊目錄沒在生效，安裝時要挑「設定檔還在更新」的那個。
+The install location was later challenged in review. The machine showed a plausible-looking skills directory under the tool's own config folder, and that had been treated as the answer.
 
-## Conclusions Supported（每個結論指得出來源）
+Checking the official documentation showed the user-level path is a *different* directory, and the one that had been assumed was not listed at all. **The directory existed; that was never evidence it was the supported location.** Existence and support are different claims, and only documentation could settle the second.
 
-| 結論 | 支撐的證據 |
+## Conclusions, each pointing at a source
+
+| Conclusion | Support |
 |---|---|
-| 安裝目標是 A 目錄 | 該目錄設定檔昨天仍有更新；另一目錄的設定檔停在四個月前且主指示檔 0 bytes |
-| 一份 skill 可同時給兩個工具用 | 兩邊現有 skill 的 frontmatter 欄位一致 |
-| 不需要做路徑轉換 | 兩邊都用同一種資料夾結構 |
+| Install into directory A, not B | B's config unchanged for months; its main instructions file is zero bytes |
+| One skill folder serves both tools | The header fields in both tools' existing skills are identical |
+| The user-level path is X | Official documentation lists X; it does not list the directory that was assumed |
 
-沒有支撐的就標出來，不要補滿：
+Left open rather than filled in:
 
-- `UNKNOWN`：另一個工具是否會自動掃描 skills 目錄、還是要另外設定——本機找不到可查的依據，要實際開那個工具測才知道。
+- **UNKNOWN**: whether one of the tools rescans its skills directory automatically or only at startup — not stated in the documentation available, and untestable from this environment.
 
 ---
 
-## 這個案例的三個教訓
+## Takeaways
 
-1. **研究的順序不能顛倒**：先有來源，才有結論。寫完要回頭逐條問「這句話的依據是哪一筆」。
-2. **最危險的不是不知道，是「我以為我知道」**。三個預設錯兩個，全部都是「聽起來很合理」的那種。
-3. **查不到就標 UNKNOWN**，不要用「通常這種情況會……」填滿。
+1. **Sources first, conclusions second**, then re-read every conclusion asking *which source says this?*
+2. **The dangerous state is not ignorance, it is a comfortable assumption.** Both wrong assumptions sounded like standard behaviour.
+3. **"It exists on my machine" is not "it is supported."** Local observation and documentation answer different questions.

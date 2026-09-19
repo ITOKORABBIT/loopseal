@@ -1,53 +1,76 @@
-# 證據規則
+# Evidence
 
-## 一句話標準
+> Evidence is something another person could re-examine without you.
 
-**證據＝別人不靠你，也能自己重看一次的東西。**
+Every claim of completion carries its evidence. A claim with no evidence is an opinion wearing a uniform.
 
-## 每筆證據要有什麼
-
-```
-[狀態] 一句話摘要
-  做法：實際執行的指令／動作
-  結果：實際看到的輸出（貼關鍵那幾行，不要「成功」兩個字帶過）
-  位置：檔案路徑／網址／輸出檔存在哪
-  時間：YYYY-MM-DD HH:MM
-```
-
-長輸出存成檔案放 `.ai-workflow/evidence/`，命名 `YYYY-MM-DD_主題.txt`，在紀錄裡寫路徑。截圖同理。
-
-## 合格 vs 不合格
-
-| 不合格 | 合格 |
-|---|---|
-| 「測試通過」 | `npm test` → `45 passed, 0 failed`，完整輸出 `evidence/2026-09-19_test.txt` |
-| 「已部署」 | `wrangler deploy` → Version ID `abc123`，`curl https://…` 回 200 且內容含新字串 |
-| 「設定改好了」 | 改 `config.toml` 的 `model = "x"`；重讀該檔實際顯示 `model = "x"` |
-| 「文件寫完了」 | `docs/plan.md`，6 章 2,400 字，已實際開檔確認排版 |
-| 「查過了，沒問題」 | 來源 URL＋擷取的那一段＋查詢時間 |
-| 「應該可以了」 | （這不是證據，是猜測，改標 UNVERIFIED） |
-
-## UNKNOWN 與 UNVERIFIED
-
-兩個標記不一樣，不要混用：
-
-- **`UNVERIFIED`**：我做了，但沒辦法（或還沒）驗證。要寫「為什麼驗不了」和「怎樣才驗得了」。
-- **`UNKNOWN`**：我不知道。不要用推測填。要寫「要問誰／查哪裡才會知道」。
+## Recording format
 
 ```
-- UNVERIFIED：Skill 在新 session 是否被自動載入——目前 session 已啟動，載入清單不會更新；
-  要開一個新的 Claude Code session 才驗得了。
-- UNKNOWN：Codex 是否會自動掃描 skills 目錄——本機沒有官方文件可查，需實際開 Codex 測試。
+CLAIM:     what you are asserting, scoped to what you actually checked
+EVIDENCE:  the command, action, or source
+RESULT:    what you actually saw — the real lines, not "success"
+LOCATION:  file path, URL, or where the output is stored
+WHEN:      timestamp (matters for freshness)
 ```
 
-**禁止**：把 UNKNOWN 用聽起來合理的話補滿。「通常這種情況會……」「照慣例應該是……」在缺證據時一律不可用。
+Long output goes in a file (`.loopseal/evidence/YYYY-MM-DD_topic.txt`) with the path cited. Screenshots likewise.
 
-## 證據要留給誰
+## The four tests
 
-留給**下一個 AI 和三個月後的自己**，不是留給現在的對話。判準：把這段紀錄單獨拿給一個完全沒參與的人，他能不能知道現在到哪、還缺什麼、東西在哪裡。不能，就是寫得不夠。
+Every piece of evidence must pass all four.
 
-## 不要造假的邊界
+### 1. Freshness
 
-- 沒跑過的指令不要寫進證據，即使「幾乎確定會過」。
-- 別人（或另一個 Agent）給的結果，要標明是轉述，不能寫成自己驗過。
-- 引用使用者的話要照抄，不要改寫成對自己有利的版本。
+**Was this produced after the last relevant change?**
+
+The classic failure: run the tests, find a bug, fix the bug, then report the earlier passing run. Fixing invalidates everything verified before the fix.
+
+- Re-verify after every change, including "trivial" ones.
+- When citing older evidence, say when it was produced and why it is still valid.
+- If the system changed underneath you (a dependency updated, someone else deployed, the directory was replaced), previous evidence is stale even if you changed nothing.
+
+### 2. Provenance
+
+**Who or what produced this, and how?**
+
+- Name the command, tool, or source. "Tests pass" with no command is not evidence.
+- Evidence from another agent, another session, or the user is *reported*, not verified by you. Label it: `reported by <source>, not independently checked`.
+- Never present a tool's summary of its own success as an independent check.
+
+### 3. Relevance
+
+**Does this actually support this claim?**
+
+The most common substitution is proving the easy thing instead of the real thing:
+
+| Claim | Irrelevant evidence | Relevant evidence |
+|---|---|---|
+| The feature works | The file was written | The feature was executed and produced the expected result |
+| The config took effect | The file contains the new value | The running process reports the new value |
+| The deployment is live | The deploy command exited 0 | The live URL returns the new content |
+| The document is correct | Word count and section list | Facts traced to sources; the file opened and inspected |
+
+### 4. Falsifiability
+
+**Could this check have failed if the work were broken?**
+
+A check that passes regardless of correctness is decoration. Before citing it, ask: *if this were broken, would this check have told me?*
+
+- A test that never touches the changed code path proves nothing about it.
+- `grep`-ing for a string you just wrote proves the string is there, not that it works.
+- A smoke test that only checks HTTP 200 will not catch a page rendering an error message with status 200.
+
+When the only available check is weak, say so: `verified only at the smoke-test level; a broken render inside the page would not have been caught`.
+
+## Not evidence
+
+- "Should work" / "logically correct" / "standard approach"
+- "I followed best practice"
+- A plan describing what you would do
+- A summary of a command you did not run
+- Another agent's claim, repeated as your own
+
+## Evidence for things you did not do
+
+Say it plainly. "Not tested" is a complete, acceptable answer. An invented or borrowed result is not.

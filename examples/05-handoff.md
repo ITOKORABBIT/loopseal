@@ -1,70 +1,80 @@
-# 案例五｜交接：換 Agent 前留下什麼
+# Example 5 — Handing off a loop that is still open
 
-**情境**：一段工作做到「已交付、等真人驗收」，要交給另一個 Agent（或另一個對話）接手複核。
-**為什麼值得看**：交接最常見的失敗不是寫太少，是**把「我做了」寫成「已驗證」**，害下一個人以為那塊不用管了。
+**Situation:** work is delivered and waiting on a person, and the session is ending. Another agent may pick it up.
+**Why this one:** the classic handoff failure is not writing too little — it is filing "I did it" under "verified", so the next person skips a check that never happened.
 
-以下是這個 repo 自己的交接，照 `references/handoff.md` 的十項格式寫。
-
----
-
-# 交接：DevFlow Skill v0.1
-
-- 時間：2026-01-XX 20:10
-- 執行者：Agent A
-- 類型：文件 ＋ 系統設定
-- 目前狀態：**已交付，等待真人驗收**
-
-## 1. 目標
-把一套閉環工作方式寫成可安裝的通用 AI Skill。驗收標準：clone 進 skills 目錄後，AI 能實際載入並照它的規則工作；repo 打開看得懂在解決什麼問題。
-
-## 2. 目前狀態
-內容寫完、已安裝到兩個環境、其中一個環境確認實際載入。停在真人驗收前。
-
-## 3. 已完成
-- Skill 本體與五份 references
-- 五個實際案例
-- README（定位、安裝、移除、內容導覽）與 MIT 授權
-- 安裝到兩個 AI 工具的 skills 目錄
-
-## 4. 已驗證
-- 檔案內容與來源一致——sha256 三份比對相同
-- 工具 A 實際載入——skill 出現在執行中 session 的清單，呼叫後內容正確顯示
-- 文件內部連結——用機器逐條比對實際檔案，補完後全部通過
-
-## 5. 尚未驗證
-- `UNVERIFIED`：工具 B 是否自動載入。為什麼：目前環境無法啟動工具 B。怎樣才驗得了：開一個工具 B 的新對話問它有沒有這個 skill。
-- `UNVERIFIED`：新對話中 AI 會不會「主動」套用（而非被明確要求時才套用）。怎樣才驗得了：開新對話丟一個普通任務，看它有沒有自己分階段回報。
-- `UNKNOWN`：其他 AI 工具的相容性——只在兩種工具上試過。
-
-## 6. 修改過什麼
-- repo 內：新增 skill 本體、references、examples、README、LICENSE；舊版草稿與前一個方向的原始碼移到 `archive/`（移動，未刪除）
-- repo 外：兩個 skills 目錄各多一個 `devflow` 資料夾（clone 產生，刪掉即可還原）
-- **沒有**改任何系統設定、PATH、全域設定檔
-
-## 7. 證據在哪
-- 內容：repo 根目錄
-- 載入證據：對話紀錄中 skill 被呼叫時顯示的 base directory
-- 連結檢查：可重跑，指令寫在案例四
-
-## 8. 已知問題
-- 連結檢查會把內文舉例用的檔名誤判成缺檔，需人眼確認
-- `archive/` 讓 clone 下來的檔案數變多（52 個），對只想看 skill 的人是雜訊
-
-## 9. 禁止事項
-- 不要把這個 skill 改成需要執行環境的工具——刻意設計成純文字規則
-- 不要在通用層加上工程狀態名稱——只有 coding 類工作才套那四段
-- 不要把 `archive/` 刪掉，保留是需求方的決定
-- 不要在未取得授權前推上公開平台
-
-## 10. 下一步
-1. 請真人自己開一個新對話，確認 AI 有載入並會主動套用
-2. 驗收通過後再決定公開發布
+The example below is this repository's own handoff, in the format from `references/handoff.md`.
 
 ---
 
-## 接手方怎麼用這份交接
+# Handoff: publish the skill and verify it loads
 
-1. **先讀再動手。** 第 5、8、9 節是重點：哪些沒驗、踩過什麼坑、不要做什麼。
-2. **核對現況。** 交接說「已安裝」就自己去看資料夾在不在。與實際不符時以實際為準，並回報差異。
-3. **不要把第 3 節當成第 4 節。** 「已完成」是做了，「已驗證」才是驗過——只有第 4 節的項目可以當成可信基礎。
-4. **不得只轉述。** 要往上回報時，自己沒核對過的項目要標明「此項為轉述，未自行核對」。
+- When / who: 2026-01-XX 20:10, Agent A
+- Seal state: **OPEN**
+- **Why still open:** one of the two target tools could not be launched from this environment, so "the skill loads" is verified for one tool and unverified for the other. The human gate is also uncleared.
+
+## Objective
+
+Publish the skill as a public repository and confirm a fresh install loads in both target tools.
+
+Seal criteria:
+1. A clean clone from the published URL contains only intended content
+2. Each tool loads the skill from its own install location
+3. A person confirms it works on their side
+
+## Verified
+
+- **Public clone is clean** — cloned fresh from the published URL; scanned working tree and full git history for internal terms → 0 matches
+- **Install instructions work** — followed the README verbatim; both installs completed; 17 files each; checksums match the source
+- **Tool A loads it** — appeared in the running session's skill list; invoked it; content loaded and base directory pointed at the install
+
+## Unverified
+
+- **UNVERIFIED**: tool B loads the skill — *why not:* could not be launched here, then it hit its own usage limit — *checkable by:* opening a tool B session and asking whether the skill is available
+- **UNVERIFIED**: whether an agent applies it *unprompted* — only "it can be invoked" has been shown — *checkable by:* fresh session, ordinary task, no mention of the skill; see whether it separates verified from unverified on its own
+
+## Unknown
+
+- **UNKNOWN**: compatibility with tools beyond the two tested — *who would know:* their respective documentation
+
+## What was changed
+
+- Public repository created; content published
+- Two skill directories on this machine now contain the skill (deleting the folders reverts it)
+- Nothing else: no system settings, no PATH, no global config files
+
+## Where the evidence is
+
+- Clone check and scan output: in this session's transcript
+- Load confirmation: the skill invocation showing its base directory
+- Published commit: `<sha>`
+
+## Known issues
+
+- The link checker produces false positives on filenames used illustratively in prose
+- A local archive directory adds files to a clone that only the skill's readers do not need
+
+## Restrictions
+
+- Do not push the local development history to the public repository — it contains internal notes; publish from the clean copy only
+- Do not mark the human gate cleared; the person has not confirmed
+
+## Next step
+
+1. Ask the person to open a fresh session in tool B and confirm the skill is listed
+2. If yes, ask them to run one ordinary task and check whether the agent separates verified from unverified without being told
+
+---
+
+## What makes this handoff usable
+
+- **"Why still open" is the first thing**, in one sentence.
+- **Verified and Unverified are separate sections.** The receiver may build on the first and must re-check the second. Merged into "done", both would be trusted equally.
+- **Every unverified item carries "checkable by".** Otherwise the next person inherits a question with no route to an answer.
+- **Restrictions are explicit**, including the one that would cause real damage if someone guessed.
+
+## Receiver's duties
+
+1. Read it before touching anything.
+2. Where the handoff and the real system disagree, the system wins — and say so.
+3. Do not forward "the previous agent said it works" as your own verification. Check it, or label it as reported.

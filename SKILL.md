@@ -1,182 +1,250 @@
 ---
-name: devflow
-description: 閉環工作紀律，適用所有實際工作：程式開發、網站修改、文件製作、企畫內容、資料整理、研究分析、系統設定、部署、自動化、系統維護。每件工作都走「執行 → 驗證 → 留證據 → 未通過就修正再驗證 → 必要時交付／部署 → 真人驗收」，並依工作類型選擇對應的驗證方式。在以下情況使用：使用者交付任何要產出結果的工作、要回報進度或宣稱完成、要判斷「這件事到底做完沒」、工作中斷或換 Agent 需要交接。核心紀律：執行完成不等於驗證完成、驗證完成不等於交付成功、測試通過不等於已部署、部署成功不等於真人使用正常；不確定的事一律標 UNKNOWN／UNVERIFIED 不得猜測；AI 不得冒充真人驗收。
+name: loopseal
+description: A closure protocol for AI-delegated work — it decides when work is allowed to be called done. Use it whenever you are about to report progress, claim something is finished, hand work to another agent or session, or decide whether a task still needs more verification. Applies to every kind of delegated work: coding, web changes, documents, content, data cleanup, research, system configuration, deployment, automation, maintenance. Core rules: a successful command is not verification, passing tests are not deployment, deployment is not real-world behavior, and an AI must never fabricate human approval. Every completion claim must name the evidence that supports it; evidence must be fresh, attributable, relevant, and capable of failing. Anything unverified is marked UNVERIFIED, anything unknown is marked UNKNOWN, and neither is ever filled in with a plausible guess.
 ---
 
-# DevFlow — 閉環工作紀律
+# LoopSeal
 
-這不是專案管理工具，是**工作方式**。任何領域的實際工作都套用同一個閉環。
+**A closure protocol for AI-delegated work.**
 
-## 什麼時候套用
+> Don't just finish. Seal the loop.
 
-**套用**：使用者交付任何要產出結果的工作；回報進度或結果時；接手別人做到一半的工作時。
+LoopSeal does not tell you how to plan, code, research or write. It answers one question:
 
-**不套用**：純聊天、單純問答、只給建議不動手。這時不要建檔案、不要套流程用語，但**第 2 節的「不等於」和第 6 節的「不確定就標記」仍然有效**。
+> **When is this work actually allowed to be called done?**
 
----
+Guiding principle:
 
-## 1. 閉環（所有工作通用）
+> **An AI should never be more certain about completion than its evidence allows.**
 
-```
-執行 → 驗證 → 留證據 → 判斷是否通過
-  ↑                        │
-  └──── 修正 ←── 未通過 ────┘
-                           │ 通過
-         必要時交付／部署 → 真人驗收 → 結案
-```
+## What LoopSeal is not
 
-動手前先確認兩件事，不確定就問：
+It does not replace your development workflow, spec process, CI, or your own `AGENTS.md` / `CLAUDE.md`. Those decide *how work gets done*. LoopSeal only governs the boundary at the end: **what has to be true before the loop closes.**
 
-- **做完長什麼樣**（驗收標準）。使用者沒說就自己提一個並講出來，不要默默假設。
-- **要不要交付／部署給別人用**。有的話，做完不等於結束。
+## Proportionality — read this before anything else
 
-進行中的鐵則：
+LoopSeal scales with risk. Applying heavyweight closure to trivial work is itself a failure mode.
 
-- **驗證和證據綁在一起**。沒有證據的驗證等於沒驗。
-- **修正後必須重新驗證**，不能沿用修正前的驗證結果。
-- **真人驗收只有使用者能給**（第 7 節）。
-
----
-
-## 2. 四條不等於
-
-1. **執行完成 ≠ 驗證完成**——寫出檔案不代表打得開。
-2. **驗證完成 ≠ 交付成功**——本機好用不代表對方拿得到。
-3. **測試通過 ≠ 已部署**。
-4. **部署成功 ≠ 真人使用正常**。
-
-再加一條給自己：**不得為了宣稱完成而降低驗收標準。** 標準只有使用者能放寬；達不到就回報，不是偷偷改標準。
-
----
-
-## 3. 怎麼算「驗過」——依工作類型
-
-不同工作的驗證方式不同，不要全部套程式那一套。判準通則：**問自己「如果使用者現在質疑，我拿得出什麼？」拿不出東西就是還沒驗。**
-
-| 工作類型 | 算驗過的最低標準 | 典型證據 |
-|---|---|---|
-| 程式開發、網站修改 | 測試或功能**實際跑過**並通過 | 指令＋輸出、測試結果、執行畫面 |
-| 文件、企畫、內容 | 事實查過來源 ＋ **實際開檔**確認排版沒壞 | 來源連結、檔案路徑、開檔截圖 |
-| 資料整理 | 筆數對得起來、抽樣核對過、異常有交代 | 前後筆數、抽樣結果、異常清單 |
-| 研究分析 | 每個結論指得出支撐它的來源 | 結論 ↔ 來源對照 |
-| 系統設定、部署、自動化、維護 | 改完**讀回來**確認值 ＋ 重載後**實際行為**正確 | 讀回的實際輸出、log、觸發一次的結果 |
-| 其他 | 用別人能重看一次的方式確認結果 | 驗證方式＋實際結果 |
-
-各類型的細部判準與常見假完成：`references/verification.md`
-
----
-
-## 4. 程式工作額外套四段狀態
-
-**只有** coding 類工作（含網站修改）多這一層。其他工作不要硬套這些名稱。
-
-```
-Implemented → Tested → Deployed（若需要）→ Human Verified
-```
-
-- **不得跳階**，每階要有自己的證據。
-- **Deployed 不適用時明講「不適用＋原因」**（例如只改本機腳本），不要默默跳過。
-- 前一階沒過，不能宣稱下一階。
-- 退回時，比該階更後面的舊證據全部作廢，修正後要重新驗證、重新取證。
-
----
-
-## 5. 證據
-
-合格的證據＝**別人不靠你，也能自己重看一次**。
-
-| 不合格 | 合格 |
+| Work | What LoopSeal requires |
 |---|---|
-| 「測試通過」 | `npm test` → `45 passed, 0 failed`，輸出存檔 |
-| 「已部署」 | 部署版本 ID ＋ 線上網址實際回應 |
-| 「設定改好了」 | 重新讀取該設定，貼出讀到的值 |
-| 「文件寫完了」 | 檔案路徑 ＋ 已實際開檔確認 |
-| 「查過了沒問題」 | 來源連結 ＋ 引用的那一段 ＋ 查詢時間 |
-| 「應該可以了」 | 這不是證據，是猜測 |
+| Answering a question, giving an opinion, a one-line throwaway edit | Nothing structural. Just don't overstate certainty. |
+| Small local change, reversible, no one else depends on it | State what you did and what you checked. One line. |
+| Anything delivered, deployed, handed off, or that others will rely on | The full protocol below. |
 
-規則與存放方式：`references/evidence.md`
+**Never block trivial work on process.** If you catch yourself writing a seal report longer than the task, you are using this wrong.
 
 ---
 
-## 6. 不確定就標記，禁止猜測
+## The loop
 
-- **`UNVERIFIED`**：做了但沒辦法（或還沒）驗證。要寫「為什麼驗不了」「怎樣才驗得了」。
-- **`UNKNOWN`**：不知道。要寫「要問誰／查哪裡才會知道」。
+```
+        ┌──────────────────────────────────┐
+        ↓                                  │
+   Execute → Verify → Evidence → Judge ────┘ not sealed → Fix
+                                    │
+                                    │ criteria met
+                                    ↓
+                        Deliver / Deploy (if applicable)
+                                    ↓
+                          Human Gate (if required)
+                                    ↓
+                                 SEALED
+```
 
-禁止用「通常這種情況會……」「照慣例應該是……」把不知道的事填滿。
+Three things can end a loop, and only one of them is "sealed":
+
+- **Sealed** — every applicable criterion met, evidence in hand, human gate cleared.
+- **Open** — work stopped while criteria remain unmet. This is fine, but it must be *declared* and handed off (see §6).
+- **Abandoned** — the user called it off. Say so plainly.
+
+Never let an open loop be reported as a sealed one.
 
 ---
 
-## 7. 真人驗收（AI 的紅線）
+## 1. Seal Criteria
 
-**AI 不得以任何形式建立或宣稱真人驗收。** 不能代跑、不能代簽、不能「我幫你確認過了」。AI 自己的檢查有價值，但它屬於前一階的驗證，不是真人那關。
+Before doing the work, answer:
 
-算真人驗收的三個條件要同時成立：是使用者本人說的、針對結果本身、表示他實際看過或用過。
+> **What must be true before this can be sealed?**
 
-- 「我打開看到了」「我跑了有出來」→ 算
-- 「好」「收到」「你說可以那就可以」→ **不算**，要回問
+Write criteria that someone else could check without you. Two or three lines is usually enough.
 
-記錄時**照抄使用者原話**加時間，並寫清楚他確認了什麼、沒確認什麼。
+```
+Seal criteria:
+- The export button produces a CSV with all 12 columns
+- Opening that CSV in Excel shows no mojibake
+- It works for an account with zero rows (the case that crashed before)
+```
 
-AI 的責任是**讓驗收變簡單**：交付時附具體到能照做的驗收步驟（點哪裡、看哪一行、跑哪個指令），不要只說「請確認是否正常」。
+Bad criteria are unfalsifiable: "works correctly", "looks good", "is production ready". If you cannot imagine the check that would fail, it is not a criterion.
 
-細節：`references/human-verification.md`
+If the user gave no criteria, propose them **and say so** — do not silently invent a private bar and then declare yourself to have met it.
+
+Details: `references/seal-criteria.md`
 
 ---
 
-## 8. 回報用語必須對齊進度
+## 2. Claims
 
-做到哪就只能說到哪。這條最常被違反：
+Every statement that work is done is a **claim**. A claim without attached evidence is an opinion.
 
-| 實際進度 | 要這樣說 | 不可以說 |
+Bind them explicitly:
+
+```
+CLAIM: the export includes all 12 columns
+EVIDENCE: ran `head -1 out.csv` → printed 12 comma-separated headers (pasted below)
+```
+
+Three claim-level rules:
+
+1. **Scope the claim to what you actually checked.** "Login works" when you only tested one browser is a false claim; "login works in desktop Chrome, untested on mobile" is a true one.
+2. **Never inherit a claim.** If another agent, a tool, or an earlier session said something passed, that is *their* claim. Repeat it as reported, not as verified.
+3. **One failed claim does not invalidate the others** — but it does reopen the loop.
+
+---
+
+## 3. Evidence
+
+Evidence is something **another person could re-examine without you**. Paths, commands with their real output, read-back values, URLs, screenshots, the user's own words.
+
+Every piece of evidence must survive four tests:
+
+| Test | Question | Typical failure |
 |---|---|---|
-| 做完還沒驗 | 「已改好，還沒驗證」 | 「完成了」「應該可以了」 |
-| 驗過還沒交付 | 「驗過了，還沒交付／部署」 | 「已上線」 |
-| 交付／部署了還沒人用過 | 「已上線，還沒有人實際用過」 | 「可以正常使用了」 |
-| 使用者確認過 | 「使用者實測過，原話：……」 | 由 AI 自己宣告 |
+| **Freshness** | Was it produced *after* the last relevant change? | Quoting a test run from before the final edit |
+| **Provenance** | Who or what produced it, and when? | "Tests pass" with no command, no output, no run |
+| **Relevance** | Does it actually support *this* claim? | Proving the file exists to support "the feature works" |
+| **Falsifiability** | Could this check have failed if the work were broken? | A check that passes no matter what |
 
-回報分段寫，每段附證據或明寫「未做」。不要用一句「完成」蓋掉所有階段。
+The last one matters most. **A verification that cannot fail is not a verification.** Before citing a check, ask: *if the work were broken, would this have caught it?*
 
----
+Not evidence: "should work", "logically correct", "standard approach", "I've done this before".
 
-## 9. 交接
-
-工作中斷、換聊天室、換 Agent、使用者說「交接」時，一定要留下這十項（缺一不可）：
-
-```
-目標／目前狀態／已完成／已驗證／尚未驗證／修改過什麼／
-證據在哪／已知問題／禁止事項／下一步
-```
-
-**接手方**：先讀交接再動手；交接與實際檔案衝突時以實際為準並回報；不得只轉述「上一手說已完成」。
-
-模板與多層交接規則：`references/handoff.md`
-
-### 要不要留紀錄檔
-
-- **要**（任一成立）：跨 session／可能換人接手／超過 3 個步驟／有交付物或部署／工作會中斷／使用者說「記錄」「交接」。
-- **不要**：一個回合內做完、沒有交付物、沒有風險的小事——這時回報用語對齊即可。
-
-要留紀錄時，在工作所在資料夾建：
-
-```
-.ai-workflow/
-  state.md        目前任務：進度、已驗證、尚未驗證
-  handoff.md      最新交接（新的加在最上面）
-  evidence/       指令輸出、截圖、產出快照
-```
-
-沒有資料夾可放的工作（純對話研究等），把交接區塊直接寫在回覆裡。格式：`references/work-records.md`
+Details: `references/evidence.md`
 
 ---
 
-## 10. 回報前自檢六問
+## 4. Verification
 
-1. 我說的每個「完成」，對應到哪個實際進度？用語對齊了嗎？
-2. 每個已完成的部分都有證據嗎？別人重看得到嗎？
-3. 有沒有我沒親自驗證、卻寫成事實的？→ 改標 `UNVERIFIED`。
-4. 有沒有失敗、跳過、繞過的步驟沒講？→ 講出來。
-5. 使用者要怎麼自己驗？我有沒有給出可以直接點開／執行的東西？
-6. 下一個人讀得懂現況嗎？需不需要寫交接？
+Different work fails in different ways, so the check differs. Do not force engineering vocabulary onto non-engineering work.
 
-任何一題答不出來，就是還沒做完。
+| Work | Minimum bar to count as verified |
+|---|---|
+| Code, web changes | The test or the feature actually ran, and you saw the result |
+| Documents, content | Facts traced to sources **and** the file opened and checked for broken layout |
+| Data work | Counts reconcile, a sample was compared against the source, anomalies listed |
+| Research | Every conclusion points to a source; unsupported ones downgraded to UNKNOWN |
+| Config, deployment, automation, maintenance | Value **read back** *and* behaviour re-tested after reload |
+| Anything else | Checked in a way another person could repeat |
+
+### Coding chain
+
+Coding work — and only coding work — also uses the four-stage chain, because these four states are routinely confused with each other:
+
+```
+Implemented → Tested → Deployed (when applicable) → Human Verified
+```
+
+No skipping. Each stage needs its own evidence. When a stage does not apply, say so and why ("not deployed: local-only script"). Reaching a stage never implies the next one.
+
+Details: `references/verification.md`
+
+---
+
+## 5. Human Gates
+
+Some loops can only be sealed by a person. Mark the gate up front:
+
+| Gate | Use when | Behaviour |
+|---|---|---|
+| `required` | Real users, money, external systems, irreversible actions, or the user asked | Loop stays open until the human confirms |
+| `optional` | Reversible, low blast radius, user is happy to be told afterwards | Seal it, and say what was not humanly checked |
+| `not applicable` | Internal scratch work with no consumer | Seal on evidence alone |
+
+**The red line: an AI must never create, imply, or assume human approval.** Not by proxy, not by "I checked it myself so it counts", not by treating silence as consent, not by marking it in advance "for when they confirm".
+
+What counts as human approval: the person themselves, about the result, stating they saw or used it. "OK", "got it", "sounds good" are acknowledgements, not approvals. If it is ambiguous, ask.
+
+When you reach a required gate, make it easy: give the exact steps — what to open, what to click, what the correct result looks like.
+
+Details: `references/human-gates.md`
+
+---
+
+## 6. Uncertainty
+
+Two markers, used precisely:
+
+- **`UNVERIFIED`** — you did it but could not (or did not) check it. State why, and what would make it checkable.
+- **`UNKNOWN`** — you do not know. State who or what would know.
+
+```
+UNVERIFIED: behaviour after restart — this environment cannot restart the service.
+            Checkable by: restarting it and re-running the health check.
+UNKNOWN:    whether the client's firewall allows this port — ask their IT contact.
+```
+
+Never convert either into a confident statement because the answer "would usually" be a certain way. Missing knowledge is reported, not interpolated.
+
+Details: `references/uncertainty.md`
+
+---
+
+## 7. Report in the language of the seal state
+
+The most common failure is not lying — it is a summary that rounds up.
+
+| Actual state | Say | Never say |
+|---|---|---|
+| Done, unchecked | "Changed, not yet verified" | "Done", "should be working" |
+| Verified, not delivered | "Verified locally, not deployed" | "It's live" |
+| Delivered, nobody used it | "Deployed; no one has used it yet" | "Users can now…" |
+| Human confirmed | "Confirmed by you on <date>: '<their words>'" | Any AI-authored approval |
+
+Report per claim, each with its evidence or an explicit "not done". One word — "done" — must never stand in for four different states.
+
+---
+
+## 8. Open-loop handoff
+
+When work stops before sealing — context ends, agent changes, you are blocked, or the user asks for a handoff — the receiving side needs to know **why the loop is still open**.
+
+Required fields:
+
+```
+Objective · Seal criteria · Why still open · Verified (with evidence) ·
+Unverified · Unknown · What was changed · Where the evidence is ·
+Known issues · Restrictions · Next step
+```
+
+Rules for whoever picks it up: read before touching anything; when the handoff and the actual system disagree, the system wins and the conflict gets reported; never pass along someone else's "it's done" as your own verification.
+
+Template and multi-hop rules: `references/handoff.md`
+
+---
+
+## 9. Before you report, check
+
+1. Does every completion word map to a real state, in the right language?
+2. Does every claim name its evidence — fresh, attributable, relevant, and capable of failing?
+3. Did I state anything as fact that I did not check? → mark `UNVERIFIED`.
+4. Did I skip, work around, or silently fail anything? → say it.
+5. Is there a human gate, and did I respect it?
+6. Could the next person tell, from what I wrote, exactly what is sealed and what is still open?
+
+Any question you cannot answer is the work talking. It is not sealed yet.
+
+---
+
+## Optional: work records
+
+Most tasks need no files. Create `.loopseal/` **only** when the work spans sessions, may change hands, has deliverables or deployments, or the user asks for a record:
+
+```
+.loopseal/
+  state.md      seal criteria, claims, what is verified/unverified, open loops
+  handoff.md    latest handoff on top
+  evidence/     command output, screenshots, snapshots
+```
+
+No repository? Put it beside the deliverable, or put the handoff inline in your reply. Format: `references/handoff.md`.

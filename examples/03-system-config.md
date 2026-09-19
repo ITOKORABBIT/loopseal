@@ -1,54 +1,63 @@
-# 案例三｜系統設定：讀得回值，但行為這一層當下只驗得了一半
+# Example 3 — The value read back. The behaviour only half-verified.
 
-**工作**：把這個 skill 安裝到兩個 AI 工具的 skills 目錄。
-**為什麼值得看**：設定類工作要分兩層驗。這次第一層兩邊都過，第二層只過一邊——**另一邊當下驗不了，就誠實標 UNVERIFIED，不要寫成「已安裝完成」。**
+**Work:** install a skill into two AI tools' skills directories.
+**Why this one:** configuration work has two layers, and the second one is where it usually fails. Here layer one passed for both tools and layer two passed for only one — reported as exactly that, rather than as "installed".
 
 ---
 
-## Changed（動了什麼）
+## Seal criteria
 
-把 repo clone 進兩個工具各自的 skills 目錄，命名為 `devflow`。
+1. The files exist in both locations and match the source
+2. Each tool actually loads the skill (not merely: the files are present)
 
-沒有改任何系統設定、沒有改 PATH、沒有裝服務。移除方式＝刪資料夾。
+Criterion 2 is deliberately separate. Files being in the right place is not the tool using them.
 
-## Config Verified（第一層：值真的寫進去了嗎）
+## Changed
 
-不是「clone 指令沒報錯所以成功」，而是**讀回來對**：
+Cloned the repository into each tool's skills directory. No system settings, no PATH, no services. Removal is deleting a folder.
+
+## Config layer — verified
+
+Not "the clone command exited 0", but read back:
 
 ```
-兩個目錄都存在，各 52 個檔案
-SKILL.md 前兩行讀回：name: devflow / description: 閉環工作紀律…
-sha256 比對：來源、A 目錄、B 目錄三份完全相同（SKILL.md 與兩個 references）
+both directories present, 17 files each
+first two lines of the skill file read back and correct
+sha256 of the skill file: identical across source and both installs
 ```
 
-✔ 第一層通過：檔案確實在該在的地方，內容與來源一致。
+✔ Layer one holds: the right bytes are in the right places.
 
-> 很多人到這裡就說「安裝完成」。但檔案在，不代表工具真的會載入它。
+Note the **relevance** trap avoided here: this evidence supports "the files are installed correctly". It does not support "the tool uses them". Those are different claims and need different evidence.
 
-## Runtime Verified（第二層：系統真的照新設定動作了嗎）
+## Runtime layer — one pass, one unverifiable
 
-| 環境 | 結果 | 證據 |
+| Tool | Result | Evidence |
 |---|---|---|
-| 工具 A | ✔ **通過** | 安裝後該 skill 立刻出現在執行中 session 的可用清單；實際呼叫一次，內容正確載入並顯示它的 base directory 指向剛安裝的資料夾 |
-| 工具 B | ⚠ **UNVERIFIED** | 無法從目前環境啟動工具 B，沒辦法確認它會不會自動掃描 skills 目錄 |
+| A | ✔ verified | The skill appeared in the running session's available list; invoking it loaded the content and reported its base directory as the newly installed folder |
+| B | ⚠ UNVERIFIED | Could not be launched from this environment, then later hit its own usage limit |
 
-`UNVERIFIED` 要寫清楚兩件事：
+For B, the marker carries its escape route:
 
 ```
-UNVERIFIED：工具 B 是否會自動載入這個 skill
-  為什麼驗不了：目前環境無法啟動工具 B
-  怎樣才驗得了：開一個工具 B 的新對話，問它「你有 devflow skill 嗎」，
-                看它能不能說出四條不等於
+UNVERIFIED: whether tool B loads the skill
+  Why not: cannot launch tool B from this environment
+  Checkable by: opening a tool B session and asking whether the skill is available
 ```
 
-## Human Verified
+## A later re-verification that mattered
 
-**未做。** 使用者自己開來看到才算。
+The installed folders were subsequently replaced (reinstalled from a different source). The earlier "tool A loads it" evidence was then **stale** — it described a directory that no longer existed. It was re-verified against the new install rather than carried forward.
+
+## Human gate: optional
+
+Reversible, no external system, no users affected. Sealed on evidence, with the unverified item stated. Had this been a production service, the gate would have been `required`.
 
 ---
 
-## 這個案例的三個教訓
+## Takeaways
 
-1. **設定類工作一定要分兩層驗**：值寫進去了（讀回來看）、行為真的變了（實際觸發一次）。只驗第一層就說完成，是這類工作最常見的假完成。
-2. **「指令沒報錯」不是證據**，讀回來的實際內容才是。
-3. **驗不了就標 UNVERIFIED，並寫出怎樣才驗得了**——把驗證方法交給下一個人，比假裝驗過有用得多。這次兩個環境一個過一個沒過，就分開寫，不要用「已安裝」一句話蓋掉。
+1. **Config work is two layers.** Value read back, then behaviour re-triggered after reload. Stopping at layer one is the most common false completion in this category.
+2. **"The command didn't error" is not evidence.** The read-back value is.
+3. **When one environment verifies and another cannot, say so per environment.** "Installed" would have concealed that half of it was unchecked.
+4. **Replacing the thing you verified voids the verification**, even when the contents look the same.

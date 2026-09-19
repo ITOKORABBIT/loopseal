@@ -1,37 +1,33 @@
-# 交接：<任務名稱>
+# Handoff: <task>
 
-- 時間：YYYY-MM-DD HH:MM
-- 執行者：<哪個 Agent>
-- 軌道：code / doc / ops / research / generic
-- 目前狀態：<狀態>（<一句白話>）
+- When / who: YYYY-MM-DD HH:MM, <agent>
+- Seal state: OPEN
+- **Why still open:** <the actual blocker or unmet criterion, one sentence>
 
-## 1. 目標
-<要達成什麼＋做完長什麼樣（驗收標準）>
+## Objective
+<what this is for, plus the seal criteria>
 
-## 2. 目前狀態
-<停在哪一階、為什麼停在這裡>
+## Verified
+- <claim> — evidence: <command / action → real result> — <where> — <when>
 
-## 3. 已完成
--
+## Unverified
+- UNVERIFIED: <item> — why not: <reason> — checkable by: <method>
 
-## 4. 已驗證
-- <事項>　驗法：<指令／動作>　結果：<實際輸出>
+## Unknown
+- UNKNOWN: <item> — who/what would know: <source>
 
-## 5. 尚未驗證
-- UNVERIFIED：<事項>　為什麼：<原因>　怎樣才驗得了：<條件>
-- UNKNOWN：<事項>　要問誰／查哪裡：<來源>
+## What was changed
+- <path or system>: <what changed>
+- <created but unused / temporarily altered and needing restoration>
 
-## 6. 修改過什麼
-- <路徑／位置>：<改了什麼>
+## Where the evidence is
+- <paths, URLs, commits, output files>
 
-## 7. 證據在哪
--
+## Known issues
+- <bugs, workarounds taken, debt created>
 
-## 8. 已知問題
--
+## Restrictions
+- <do not touch X · do not re-run Y · approaches already rejected>
 
-## 9. 禁止事項
-- <不要動什麼、不要重跑什麼、使用者否決過什麼>
-
-## 10. 下一步
-1. <接手的人第一件該做的事，具體到可直接執行>
+## Next step
+1. <first concrete action, specific enough to execute>

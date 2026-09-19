@@ -1,22 +1,25 @@
-# 工作狀態
+# Work state
 
-> 更新：YYYY-MM-DD HH:MM　by <Agent>
+> Updated: YYYY-MM-DD HH:MM by <agent>
 
-## <任務名稱>
-- 類型：程式 / 文件 / 資料整理 / 研究 / 系統設定 / 其他
-- 進度：**<一句白話，例如「已測試，尚未部署」>**
-- 驗收標準：<做完長什麼樣，要能被別人檢查>
+## <task>
 
-### 已完成並驗證
-- [x] <做了什麼> — 驗法：<指令／動作> — 結果：<實際輸出> — 證據：<路徑／連結>
+- **Seal state:** OPEN / SEALED / ABANDONED
+- **Human gate:** required / optional / not applicable
+- **Why still open:** <one sentence — delete when sealed>
 
-### 尚未完成
-- [ ] <項目> — 未做
-- [ ] 真人驗收 — 未做（只有使用者本人能給）
+### Seal criteria
+- [ ] <checkable by someone else, capable of failing>
+- [ ] <…>
 
-### 尚未驗證
-- UNVERIFIED：<做了但驗不了的事> → 怎樣才驗得了：<條件>
-- UNKNOWN：<不知道的事> → 要問誰／查哪裡
+### Verified
+- CLAIM: <scoped to what was actually checked>
+  EVIDENCE: <command / action> → <real result>
+  WHERE: <path, URL, or evidence file>  WHEN: <timestamp>
 
-### 已知問題
-- <踩到的坑、繞過去的地方；沒有就寫「無」>
+### Unverified
+- UNVERIFIED: <item> — why not: <reason> — checkable by: <method>
+- UNKNOWN: <item> — who/what would know: <source>
+
+### Known issues
+- <bugs, workarounds, debt; write "none" if none>

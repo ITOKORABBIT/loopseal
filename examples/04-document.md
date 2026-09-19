@@ -1,61 +1,60 @@
-# 案例四｜文件製作：內容、事實、格式要分三次檢查
+# Example 4 — It read beautifully. Five of its links were dead.
 
-**工作**：寫這個 repo 的 `README.md` 與 `SKILL.md`。
-**為什麼值得看**：文件類工作的「驗過」不是重讀一遍覺得順，是三種不同的檢查，而且**格式檢查真的會抓到東西**。
+**Work:** write the README and skill documentation for this repository.
+**Why this one:** document work is where "I reread it and it's good" masquerades as verification. The prose was fine. The file was broken.
 
 ---
 
-## Drafted
+## Seal criteria
 
-需求方給的規格是四件事：全領域閉環原則、不同任務如何選驗證方式、evidence 怎麼留、handoff 怎麼交接。另外要求 coding 才額外套四段狀態。
+1. Every item in the brief appears in the document
+2. Every factual claim traceable to something observed
+3. Every internal link resolves to a file that exists
 
-## 檢查一：內容（需求逐項對照）
+## Pass 1 — Content
 
-把需求拆成清單，逐條指到文件的哪一節，不是憑印象說「都寫到了」：
+The brief listed four required topics. Mapped each to a section rather than trusting a reread:
 
-| 需求 | 對應位置 |
+| Required | Where it landed |
 |---|---|
-| 全領域閉環原則 | `SKILL.md` 第 1、2 節 |
-| 不同任務如何選驗證方式 | `SKILL.md` 第 3 節 ＋ `references/verification.md` |
-| Evidence 怎麼留 | `SKILL.md` 第 5 節 ＋ `references/evidence.md` |
-| Handoff 怎麼交接 | `SKILL.md` 第 9 節 ＋ `references/handoff.md` |
-| coding 才套四段狀態 | `SKILL.md` 第 4 節（明寫「只有 coding」） |
+| Closure principles | `SKILL.md` §1–2 |
+| How verification differs by work type | `SKILL.md` §4 + `references/verification.md` |
+| How to record evidence | `SKILL.md` §3 + `references/evidence.md` |
+| How handoff works | `SKILL.md` §8 + `references/handoff.md` |
 
-這一輪抓到一個**自己的設計錯誤**：初稿把五種工作類型都寫成狀態機（各自四到六段狀態名稱），違反「不要把工程流程硬套到所有工作」。整段重寫成「怎麼算驗過」的判準表，舊版移到 `archive/`。
+This pass caught a **design** error, not a typo: the first draft gave every work type its own named state chain. That contradicted the brief, which asked for engineering vocabulary to stay confined to coding. Rewritten as "what counts as verified per work type"; the draft moved to `archive/`.
 
-## 檢查二：事實
+## Pass 2 — Facts
 
-文件裡每個「事實宣稱」都要有來源：安裝路徑、資料夾結構、frontmatter 欄位名稱，全部來自實際查看的結果（見 [案例二](02-research.md)），不是照慣例寫的。
+Every path, directory layout and header field in the document came from something actually inspected on the machine or from official documentation — not from how such tools usually work. One claim that could not be sourced was cut rather than softened.
 
-寫不出來源的句子就刪掉或改成標記。
+## Pass 3 — Format, done by machine
 
-## 檢查三：格式（實際檢查，不是看起來對）
-
-用機器把文件裡的每個內部連結對回實際檔案：
+Checked every internal link against the filesystem:
 
 ```
-README 的 5 個 examples 連結  → ✘ 全部缺檔（當時還沒寫）
-SKILL.md 的 5 個 references   → ✔ 全部存在
+README's 5 example links   → ✘ all five missing (not yet written)
+SKILL.md's reference links → ✔ all present
 ```
 
-**這就是格式檢查存在的意義**：README 已經寫得很完整、讀起來也很順，但 5 個連結全是死的。只重讀文章永遠不會發現。
+**This is the whole point of a format pass.** The README was complete, well-organised, and pleasant to read — with five dead links. No amount of rereading finds that; only a mechanical check does.
 
-補完檔案後重跑同一個檢查，全部變 ✔ 才算過。
+After writing the missing files, the same check was re-run and passed. (Re-running matters: the first result was about a previous state of the repository.)
 
-檢查本身的限制也要講：這個連結檢查會把內文舉例用的檔名（例如示意用的 `docs/plan.md`）誤判成缺檔，需要人眼確認一次。**知道自己的檢查不完美，比假裝它完美重要。**
+## The check's own limits, stated
 
-## Delivered
+The link checker also flags filenames that appear as illustrations inside prose — e.g. a sample path in an example block — as missing files. Those are false positives and need a human glance.
 
-檔案在 repo 根目錄，任何人 clone 下來就看得到。
+Saying so is part of the evidence. **A verification whose blind spots are undocumented invites over-trust in it.**
 
-## Human Approved
+## Human gate: required
 
-**未做。** 需求方讀過並認可才算，AI 自己覺得寫得好不算。
+Someone else's brief, so someone else decides whether it is met. Delivered as open, awaiting their read.
 
 ---
 
-## 這個案例的三個教訓
+## Takeaways
 
-1. **文件的「驗過」是三件事**：需求對照、事實查核、實際開檔／檢查格式。少做任何一項都可能交出「讀起來很好但連結全壞」的東西。
-2. **格式檢查要用機器做**，人眼讀十遍也不會發現死連結。
-3. **檢查自己的檢查**：知道它會漏什麼、會誤判什麼，寫出來。
+1. **Document verification is three different passes** — content, facts, format. They catch different things and cannot substitute for each other.
+2. **Format is checked mechanically.** Prose quality and structural integrity are unrelated properties.
+3. **Document what your check cannot catch.** A check presented as complete when it is partial is worse than no check.

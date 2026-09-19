@@ -1,68 +1,79 @@
-# 交接規格
+# Open-loop handoff
 
-## 什麼時候要寫
+A handoff exists because a loop is **still open**. The single most important thing the next person needs is not what you did — it is:
 
-- 工作中斷（做不完、被打斷、卡住）
-- 換聊天室、換 session、換 Agent（Claude Code ↔ Codex ↔ ChatGPT）
-- 使用者說「交接」「記錄」「先這樣」
-- 一段工作告一段落要回交給人驗收
+> **Why is this loop still open?**
 
-## 十項必備（缺一不可）
+## When to write one
 
-寫進 `.ai-workflow/handoff.md`，或沒有落地位置時直接寫在回覆裡。
+Context is ending · agent or session changes · you are blocked · the user asks for a handoff or a record · work is going to someone for review.
+
+## Format
 
 ```markdown
-# 交接：<任務名稱>
+# Handoff: <task>
 
-- 時間：YYYY-MM-DD HH:MM
-- 執行者：<哪個 Agent>
-- 軌道：code / doc / ops / research / generic
-- 目前狀態：<狀態>（<一句白話>）
+- When / who: 2026-01-15 14:30, <agent>
+- Seal state: OPEN
+- **Why still open:** <the actual blocker or missing criterion, in one sentence>
 
-## 1. 目標
-要達成什麼，以及「做完長什麼樣」的驗收標準。
+## Objective
+<what it is for, and the seal criteria>
 
-## 2. 目前狀態
-現在停在哪一階，為什麼停在這裡。
+## Verified
+- <claim> — evidence: <command/action → real result> — <where>
 
-## 3. 已完成
-做了哪些事。一項一行。
+## Unverified
+- UNVERIFIED: <item> — why not: <reason> — checkable by: <method>
 
-## 4. 已驗證
-哪些事**實際驗過**，用什麼方式驗的。沒驗的不要寫進這一節。
+## Unknown
+- UNKNOWN: <item> — who/what would know: <source>
 
-## 5. 尚未驗證
-UNVERIFIED／UNKNOWN 清單，每項寫「為什麼還沒驗」與「怎樣才驗得了」。
+## What was changed
+- <path or system>: <what changed>
+- includes anything created but unused, and anything temporarily altered that must be restored
 
-## 6. 修改過什麼
-動過的檔案、設定、線上資源，逐項列出（路徑／位置＋改了什麼）。
-含「已建立但還沒用到」和「暫時改掉、之後要還原」的東西。
+## Where the evidence is
+- <paths, URLs, commits, output files>
 
-## 7. 證據在哪
-檔案路徑、輸出檔、commit、網址、截圖位置。
+## Known issues
+- <bugs, workarounds taken, debt created>
 
-## 8. 已知問題
-踩到的坑、還沒解的錯誤、繞過去的地方（繞過＝技術債，要寫）。
+## Restrictions
+- <do not touch X · do not re-run Y · approaches the user already rejected>
 
-## 9. 禁止事項
-不要動哪些檔案、不要重跑哪個指令、哪些是使用者明確否決過的方向。
-接手的人最容易在這裡重蹈覆轍。
-
-## 10. 下一步
-接手的人第一件該做的事，具體到可以直接執行。
+## Next step
+1. <the first concrete action, specific enough to execute>
 ```
 
-## 接手方的義務
+`Verified` and `Unverified` are separate sections for a reason: the receiver may build on the first and must re-check the second. Never merge them into "done".
 
-1. **先讀交接再動手。** 不讀就改東西是最常見的重工來源。
-2. **核對現況**：交接說的和實際檔案／線上狀態不一致時，**以實際為準**，並回報衝突，不要照著錯的前提做。
-3. **不要重做「已驗證」的部分**，但要看懂「尚未驗證」和「禁止事項」。
-4. 接手後第一次回報，要說清楚自己核對了什麼、發現哪裡與交接不符。
+## Rules for the receiver
 
-## 多層交接
+1. **Read it before touching anything.** Skipping this is the main source of duplicated work.
+2. **Reconcile with reality.** Where the handoff and the actual system disagree, the system wins — and the disagreement gets reported, not silently absorbed.
+3. **Do not re-verify what is listed as verified** (unless something changed since), and **do not trust what is listed as unverified**.
+4. **State what you checked.** Your first report should say which parts of the handoff you confirmed and where it was wrong.
 
-經過多手時（例如 Claude Code → Codex → ChatGPT 驗收），每一手都要：
+## Multi-hop handoffs
 
-- 保留前一手的交接內容（往下壓，不要刪）
-- 在最上面加自己這一段
-- **不得只轉述「上一手說已完成」**——要嘛自己核對過、要嘛明寫「此項為轉述，未自行核對」
+When work passes through several hands (agent → agent → reviewer):
+
+- Keep the previous handoff; add yours on top.
+- Never forward "the previous agent says it's done" as your own verification. Either check it, or label it: `reported upstream, not independently verified`.
+- Each hop that loses the "why still open" line makes the next hop guess.
+
+## Optional persistent record
+
+For work spanning sessions, keep it beside the work:
+
+```
+.loopseal/
+  state.md      seal criteria, verified / unverified, open loops
+  handoff.md    latest handoff on top, older ones below
+  evidence/     command output, screenshots, snapshots
+```
+
+Keep it human-readable Markdown. Update it when state changes, not at the end. Never delete history — a closed loop that reopens is exactly when the old record matters.
+
+Do not create this for small single-session work, and do not put secrets, tokens or personal data in it — especially in a repository that might become public.

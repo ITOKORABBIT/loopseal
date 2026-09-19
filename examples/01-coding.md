@@ -1,17 +1,23 @@
-# 案例一｜程式開發：測試全過，安裝測試才抓到兩個 bug
+# Example 1 — Tests passed. The install test found two bugs.
 
-**工作**：寫一個小型命令列工具（原始碼留在本 repo `archive/cli-v0.1/`）。
-**為什麼值得看**：這是「測試通過 ≠ 已部署」最典型的一次。
+**Work:** a small command-line tool.
+**Why this one:** it is the cleanest illustration of `Tested ≠ Deployed`, and of why a check that cannot fail proves nothing.
 
 ---
 
+## Seal criteria (written first)
+
+1. The tool installs into a clean directory and runs there
+2. Uninstalling restores the directory to its prior state
+3. Automated tests pass
+
+Criterion 2 exists because an earlier tool in the same family left files behind.
+
 ## Implemented
 
-改動範圍：11 個原始碼檔，約 1,900 行，零第三方相依。
+Eleven source files, no third-party dependencies. Paths and line ranges recorded; all committed.
 
-證據：檔案路徑與行號可定位，全部進版控。
-
-> 這時候**還不能說「做好了」**。程式寫完只代表寫完。
+At this point the honest statement is *"written, not verified"*. Nothing had been run.
 
 ## Tested
 
@@ -19,40 +25,45 @@
 npm test → tests 45 / pass 45 / fail 0
 ```
 
-完整輸出存檔，任何人都能重跑。
+Full output saved; anyone can re-run it.
 
-> 這時候可以說「測試通過」，**不能說「可以用了」**。測試是我自己寫的，它只證明我預期的情況成立。
+Correct claim: **"45 automated tests pass."**
+Incorrect claim, and the tempting one: *"the tool works."* The tests were written by the same process that wrote the code, and they exercised the code in-process only.
 
-## Deployed（＝在乾淨環境實際安裝一次）
+## Deployed → this is where it broke
 
-這個工具沒有線上服務，所以「部署」定義成：**在一個乾淨資料夾實際安裝、實際執行、實際移除**。定義寫進紀錄，不是默默套用。
+"Deployed" for a tool with no server means: **installed into a clean directory, executed there, and uninstalled.** That definition was written down rather than assumed.
 
-實測抓到兩個 45 項測試完全沒發現的問題：
+The install test found two defects the 45 tests could not have caught:
 
-| 問題 | 為什麼測試抓不到 |
+| Defect | Why the tests were blind to it |
 |---|---|
-| 產生的 `.cmd` 啟動器裡有中文註解，在某些系統語系下被誤判成指令，每次執行多噴一行錯誤 | 測試在程式內部呼叫，沒有真的透過系統的命令列解譯器執行 |
-| 用該啟動器執行「移除」時，批次檔把自己刪掉，命令列讀不到後續行而報錯 | 測試各自獨立，沒有模擬「刪掉自己正在執行的檔案」 |
+| The generated launcher contained non-ASCII comments; under a different console code page the shell parsed them as commands and printed an error on every run | Tests invoked the code in-process; no test ever went through the system shell |
+| Running "uninstall" via the launcher deleted the launcher mid-execution, so the shell then failed reading the rest of the file | Each test ran in isolation; none simulated a file deleting itself while executing |
 
-兩個都修掉，**重新跑測試 ＋ 重新跑安裝實測**（修正後必須重驗，不能沿用修正前的結果）。
+Both are **falsifiability** failures: the test suite was incapable of failing on either bug, so its passing said nothing about them.
 
-## Human Verified
+After fixing, the tests **and** the install test were both re-run. The earlier passing run was void the moment the code changed (**freshness**).
 
-**未做。** 只有使用者本人跑過才算。
+## Human gate: required
 
-交付時附上具體驗收步驟：
+The tool would be used by someone else, so a person had to run it once.
+
+Handed over with exact steps:
 
 ```
-1. cd 到工具資料夾
-2. 執行 <安裝指令>
-3. 看有沒有出現「已安裝」，以及資料夾裡有沒有 <預期檔案>
-4. 不對就跟我說，我退回去修
+1. cd into an empty folder
+2. run <install command>
+3. you should see "installed", and the folder should contain <files>
+4. if not, tell me and I'll reopen it
 ```
+
+Seal state at handover: **OPEN — awaiting the human gate.** Not "done".
 
 ---
 
-## 這個案例的三個教訓
+## Takeaways
 
-1. **自動測試和實際安裝測的是不同東西。** 測試驗的是程式邏輯，安裝驗的是它在真實環境裡活不活得下來。
-2. **「部署」對每個專案的定義不同，要先講清楚再套用。** 沒有線上服務就定義成可安裝；定義要寫下來，讓別人能反對。
-3. **修完要重驗**。修正前的測試結果對修正後的程式沒有效力。
+1. **In-process tests and a real install test verify different things.** One checks logic; the other checks whether it survives contact with a real environment.
+2. **Define "deployed" for the project, in writing, before using the word.** No server does not mean the stage is skipped.
+3. **Fixing invalidates prior verification.** Re-run everything downstream of the change.
