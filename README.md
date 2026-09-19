@@ -60,15 +60,18 @@ AI 助理最常見的六種「假完成」：
 # Claude Code
 git clone https://github.com/ITOKORABBIT/devflow-skill.git ~/.claude/skills/devflow
 
-# Codex
-git clone https://github.com/ITOKORABBIT/devflow-skill.git ~/.codex/skills/devflow
+# Codex（官方文件的使用者層 skills 位置是 ~/.agents/skills）
+git clone https://github.com/ITOKORABBIT/devflow-skill.git ~/.agents/skills/devflow
 ```
 
 Windows（PowerShell）：
 
 ```powershell
 git clone https://github.com/ITOKORABBIT/devflow-skill.git "$env:USERPROFILE\.claude\skills\devflow"
+git clone https://github.com/ITOKORABBIT/devflow-skill.git "$env:USERPROFILE\.agents\skills\devflow"
 ```
+
+只想給某個專案用的話，Codex 也會讀 repo 內的 `.agents/skills/`，把它 clone 到專案的 `.agents/skills/devflow` 即可。
 
 不用 git 也可以：下載 ZIP，解壓後把整個資料夾放進 skills 目錄並命名為 `devflow`。
 
@@ -78,11 +81,12 @@ git clone https://github.com/ITOKORABBIT/devflow-skill.git "$env:USERPROFILE\.cl
 
 ```bash
 cd ~/.claude/skills/devflow && git pull
+cd ~/.agents/skills/devflow && git pull
 ```
 
 ### 讓它變成預設行為（選用）
 
-Skill 通常由 AI 依情境自行判斷是否套用。想讓它**每次都套用**，在你的全域指示檔（例如 `~/.claude/CLAUDE.md` 或 `~/.codex/AGENTS.md`）加一行：
+Skill 通常由 AI 依情境自行判斷是否套用。想讓它**每次都套用**，在你那個工具的全域指示檔（例如 Claude Code 的 `~/.claude/CLAUDE.md`、Codex 的全域 `AGENTS.md`）加一行：
 
 ```markdown
 所有實際工作預設套用 devflow skill：做完要驗、驗完留證據、失敗修正再驗、真人驗收不得由 AI 代簽。
@@ -98,6 +102,7 @@ Skill 通常由 AI 依情境自行判斷是否套用。想讓它**每次都套�
 
 ```bash
 rm -rf ~/.claude/skills/devflow
+rm -rf ~/.agents/skills/devflow
 ```
 
 如果你有加上面那行全域指示，把那一行刪掉。
