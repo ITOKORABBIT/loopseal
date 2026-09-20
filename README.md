@@ -153,9 +153,15 @@ Nothing else is left behind.
 
 ## Does it actually help?
 
-**Unproven after two rounds. Neither found a measurable advantage, and the second round could not run the comparison that matters.**
+**Unproven after two rounds. Neither round produced a measurable advantage, and the second round was inconclusive — the environment it ran in invalidated the comparison.**
 
-[Round 2](evals/results/2026-09-20-round2.md) attempted the four-arm design and hit three walls: the comparison skill had no content installed, the "base" arm turned out to carry an existing evidence-discipline instruction file, and the agents' working directory contained both this protocol and the benchmark's own pass/fail criteria — two base-arm agents confirmed reading them. Of 20 cells, 16 were scorable by a blinded grader: **6 pass / 1 partial / 1 fail without LoopSeal, 7 pass / 1 partial / 0 fail with it** — a difference smaller than the variation between two runs of the *same* condition. The single outright failure and the single best run came from the same arm, on the same scenario.
+[Round 2](evals/results/2026-09-20-round2.md) attempted the four-arm design and hit three walls. Two of the four arms could not be run at all, because no clean isolated runtime with the comparison workflow actually installed could be established. The "base" arm turned out to carry an existing evidence-discipline instruction file, so it was never a bare agent. And the agents' working directory contained both this protocol and the benchmark's own pass/fail criteria — two base-arm agents confirmed reading them, which leaked the answer key into the baseline.
+
+Of 20 cells, 16 were scorable by a blinded grader. Re-checked against each scenario's pre-written acceptance criteria, the outcome is **6 pass / 0 partial / 2 fail without LoopSeal, 5 pass / 3 partial / 0 fail with it** — differences smaller than the variation between two runs of the *same* condition, in a design that had already lost its baseline. The single outright failure and the single best run came from the same arm, on the same scenario.
+
+**In the usable subset, no obvious arm effect was detectable — but the experiment was not valid enough to estimate LoopSeal's effect in either direction.** It is not a finding that the protocol makes no difference; it is a finding that this round could not measure one. The cost observations are similarly descriptive, not evidence of an effect: token use was **+1.3%** and the protocol arm made *fewer* tool calls, so the usual cost objection is not supported by what was observed — which says nothing about whether it helps.
+
+Round 3 is paused. Repeating the design in the same environment would add runs without removing the contamination.
 
 The round 1 pilot is below and reached the same place by a shorter route.
 
