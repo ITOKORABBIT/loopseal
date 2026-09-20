@@ -157,7 +157,9 @@ Nothing else is left behind.
 
 [Round 2](evals/results/2026-09-20-round2.md) attempted the four-arm design and hit three walls. Two of the four arms could not be run at all, because no clean isolated runtime with the comparison workflow actually installed could be established. The "base" arm turned out to carry an existing evidence-discipline instruction file, so it was never a bare agent. And the agents' working directory contained both this protocol and the benchmark's own pass/fail criteria — two base-arm agents confirmed reading them, which leaked the answer key into the baseline.
 
-Of 20 cells, 16 were scorable by a blinded grader. Re-checked against each scenario's pre-written acceptance criteria, the outcome is **6 pass / 0 partial / 2 fail without LoopSeal, 5 pass / 3 partial / 0 fail with it** — differences smaller than the variation between two runs of the *same* condition, in a design that had already lost its baseline. The single outright failure and the single best run came from the same arm, on the same scenario.
+Of 20 cells, 16 were scorable by a blinded grader. Re-checked against each scenario's pre-written acceptance criteria, the outcome is **6 pass / 0 partial / 2 fail without LoopSeal, 5 pass / 1 partial / 2 fail with it** — differences smaller than the variation between two runs of the *same* condition, in a design that had already lost its baseline. The worst run and the best run came from the same arm, on the same scenario.
+
+One result does stand on its own, separate from any arm comparison: on the scenario where a deploy script succeeds while the published page is broken, **three of four runs published the broken page and reported the task complete.** The one that caught it mentioned it as an unprompted aside.
 
 **In the usable subset, no obvious arm effect was detectable — but the experiment was not valid enough to estimate LoopSeal's effect in either direction.** It is not a finding that the protocol makes no difference; it is a finding that this round could not measure one. The cost observations are similarly descriptive, not evidence of an effect: token use was **+1.3%** and the protocol arm made *fewer* tool calls, so the usual cost objection is not supported by what was observed — which says nothing about whether it helps.
 
@@ -176,7 +178,12 @@ The only differences observed were in how completion was *described*, not in wha
 
 That is a much smaller claim than "prevents false completion", and the larger claim is not supported.
 
-What is still unknown: the eight scenarios the hypothesis says should differentiate (deployment versus reality, stale evidence, handoff conflicts, cross-agent context loss) were **not run**, nor were the two arms involving an existing workflow skill — so whether LoopSeal adds anything on top of one is entirely unanswered. Weaker models, long sessions and real multi-agent handoffs are untested.
+What is still unknown, after both rounds:
+
+- **Deployment versus reality, stale evidence, handoff conflicts** — attempted in round 2 and **inconclusive**: the baseline arm was contaminated and the sample was two runs per cell.
+- **Cross-agent context loss**, the scenario closest to the product hypothesis — **void**: those runs read this repository, including the scenario's own pass/fail criteria.
+- **Whether LoopSeal adds anything on top of an existing workflow skill** — the two arms that would answer it have **never been run**, in either round.
+- **Weaker models, long sessions and real multi-agent handoffs** — untested.
 
 The benchmark is designed so LoopSeal can lose, and this pilot is what that looks like. Full write-up, including the method's limitations: [`evals/results/`](evals/results/).
 
